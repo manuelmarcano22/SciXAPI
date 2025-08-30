@@ -1,0 +1,19 @@
+[workspace]
+authors = ["Manuel Pichardo Marcano <manuelmarcano22@yahoo.com>"]
+channels = ["conda-forge"]
+name = "SciXAPI"
+platforms = ["osx-64"]
+version = "0.1.0"
+
+[tasks]
+jl = "jupyter lab"
+
+[dependencies]
+pyzotero = ">=1.6.11,<2"
+numpy = ">=2.3.2,<3"
+jupyterlab = ">=4.4.6,<5"
+pandas = ">=2.3.2,<3"
+geopandas = ">=1.1.1,<2"
+matplotlib = ">=3.10.5,<4"
+cartopy = ">=0.25.0,<0.26"
+jupytext = ">=1.17.3,<2"
