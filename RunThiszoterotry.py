@@ -38,7 +38,7 @@ def get_ads_data_fromdoi(doi, ads_token=None,verbose=False):
         query = f'arXiv:{arxivID}'
         
     else:
-        query = f'doi:{doi}'
+        query = f'doi:"{doi}"'
     
     #query = f'doi:{doi}'
     encoded_query = urlencode({"q":query,
@@ -261,10 +261,17 @@ for scixlib in resultslib.json()['libraries']:
     bibcodeslib = resultsdos.json()['documents']
     listadoisscix = []
     listabibcodescondoi = []
+    listacompletasdoisscix = []
+    listabibcodeydoi = []
     for v in resultsdos.json()['solr']['response']['docs']:
         if 'doi' in v.keys():
+            if len(v['doi']) >1:
+                for d in v['doi']:
+                    #print(len(v['doi']),v['doi'])
+                    listacompletasdoisscix.append(d) #get all dois or just one?
             listadoisscix.append(v['doi'][0])
             listabibcodescondoi.append(v['bibcode'])
+            listabibcodeydoi.append([v['doi'][0],v['bibcode']])
             #print('doit')
     #print(len(listadoisscix))
     #listadoisscix = [v['doi'][0]  for v in resultsdos.json()['solr']['response']['docs']]
@@ -280,6 +287,7 @@ for scixlib in resultslib.json()['libraries']:
                     listadedois.append(itemcol['data']['DOI'])
             doistoadd = list(set(listadoisscix)-set(listadedois)) 
             print('to add zotero',len(doistoadd))
+            #print(doistoadd)
             for doi in doistoadd:
                 if doi not in listadedois:
                     #print('Not in Zotero')
@@ -289,22 +297,28 @@ for scixlib in resultslib.json()['libraries']:
                     if itemz != None:
                         itemz['collections'] = [i['key']]
                         responsezotcreate = zot.create_items([itemz])
-            doistoaddscix = list(set(listadedois)-set(listadoisscix)) 
+            doistoaddscix = list(set(listadedois)-set(listadoisscix)) #Here I changed it to any doi in scix
+            listacompletadelosdosscix = list(set(listadoisscix + listacompletasdoisscix))
+            doistoaddscix = list(set(listadedois)-set(listacompletadelosdosscix))
+            doistoaddscix=[doitocheck for doitocheck in doistoaddscix     if doitocheck != '']
             print('to add to scix',len(doistoaddscix))
+            #print(doistoaddscix)
             for doi in doistoaddscix:
-                if doi not in listadoisscix:
-                    #print('aaaaa',doi)
-                    toaddtoscix = get_ads_data_fromdoi(doi,ads_token=token,verbose=False)
-                    if toaddtoscix is not None:
-                        #print(toaddtoscix)
-                    
-                        # add a bibcode
-                        #payload = {"bibcode": [f"{doi}"], "action": "add"} Doesnt work for ariv doi
-                        payload = {"bibcode": [f"{toaddtoscix['bibcode']}"], "action": "add"}
-                        results = requests.post(f"https://api.adsabs.harvard.edu/v1/biblib/documents/{idlib}", 
-                                                headers={'Authorization': 'Bearer ' + token},
-                                                data=json.dumps(payload))
-                        #results.json()
+                if len(doi) > 0:
+                    if doi not in listacompletadelosdosscix:   #changed also to all
+                        #print('aaaaa',doi)
+                        toaddtoscix = get_ads_data_fromdoi(doi,ads_token=token,verbose=False)
+                        if toaddtoscix is not None:
+                            #print(toaddtoscix)
+                        
+                            # add a bibcode
+                            #payload = {"bibcode": [f"{doi}"], "action": "add"} Doesnt work for ariv doi
+                            payload = {"bibcode": [f"{toaddtoscix['bibcode']}"], "action": "add"}
+                            results = requests.post(f"https://api.adsabs.harvard.edu/v1/biblib/documents/{idlib}", 
+                                                    headers={'Authorization': 'Bearer ' + token},
+                                                    data=json.dumps(payload))
+                            results.raise_for_status()
+                            #print(results.json())
                         
                         
                                                 
@@ -317,47 +331,11 @@ for scixlib in resultslib.json()['libraries']:
     
         
 
-# %%
-toaddtoscix
-
 # %% [markdown]
-# # So DOIs get added later to scix?
+# # Maybe search via arxiv not DOI?  But them no doi export?
 
 # %%
-
-# %%
-
-# %%
-
-# %%
-
-# %%
-results.json()
-
-# %%
-
-# %%
-doi
-
-# %%
-doistoaddscix[0] == doi
-
-# %%
-doi
-
-# %%
-listadoisscix
-
-# %%
-
-# %%
-
-# %%
-
-# %%
-
-# %%
-doi = '10.48550/arXiv.2508.09742'
+doi = '10.48550/arXiv.2509.01069'
 ads_token = token
 
 if 'arXiv.' in doi:
